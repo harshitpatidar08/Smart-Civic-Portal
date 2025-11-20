@@ -25,7 +25,7 @@ const Register = () => {
     setLoading(true);
     try {
       await registerUser(form);
-      navigate('/report');
+      navigate('/home');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Unable to register');
     } finally {
