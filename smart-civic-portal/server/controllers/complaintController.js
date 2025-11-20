@@ -19,10 +19,16 @@ exports.createComplaint = async (req, res, next) => {
       longitude,
       category = 'other',
       priority = 'medium',
+      city,
+      area,
+      landmark,
     } = req.body;
 
-    if (!issueTitle || !description || !latitude || !longitude) {
-      const error = new Error('Issue title, description, latitude, and longitude are required');
+    // VALIDATION → Allow either coordinates OR manual location
+    if ((!latitude || !longitude) && !city && !landmark) {
+      const error = new Error(
+        'Please provide either coordinates OR city/landmark for location.'
+      );
       error.statusCode = 400;
       throw error;
     }
@@ -30,8 +36,11 @@ exports.createComplaint = async (req, res, next) => {
     const complaint = await Complaint.create({
       issueTitle,
       description,
-      latitude,
-      longitude,
+      latitude: latitude || null,
+      longitude: longitude || null,
+      city,
+      area,
+      landmark,
       category,
       priority,
       imageUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
@@ -44,31 +53,44 @@ exports.createComplaint = async (req, res, next) => {
   }
 };
 
+
 exports.getComplaints = async (req, res, next) => {
   try {
     const filters = buildFilters(req.query);
     const complaints = await Complaint.find(filters)
       .sort({ createdAt: -1 })
       .populate('createdBy', 'name email role');
-    res.status(200).json({ success: true, results: complaints.length, complaints });
+
+    res.status(200).json({
+      success: true,
+      results: complaints.length,
+      complaints,
+    });
   } catch (error) {
     next(error);
   }
 };
 
+
 exports.getComplaintById = async (req, res, next) => {
   try {
-    const complaint = await Complaint.findById(req.params.id).populate('createdBy', 'name email');
+    const complaint = await Complaint.findById(req.params.id).populate(
+      'createdBy',
+      'name email'
+    );
+
     if (!complaint) {
       const error = new Error('Complaint not found');
       error.statusCode = 404;
       throw error;
     }
+
     res.status(200).json({ success: true, complaint });
   } catch (error) {
     next(error);
   }
 };
+
 
 exports.getUserComplaints = async (req, res, next) => {
   try {
@@ -87,10 +109,20 @@ exports.getUserComplaints = async (req, res, next) => {
 
 exports.updateComplaint = async (req, res, next) => {
   try {
-    const updates = (({ status, priority }) => ({ status, priority }))(req.body);
-    Object.keys(updates).forEach((key) => updates[key] === undefined && delete updates[key]);
+    const updates = (({ status, priority }) => ({
+      status,
+      priority,
+    }))(req.body);
 
-    const complaint = await Complaint.findById(req.params.id).populate('createdBy', 'email name');
+    Object.keys(updates).forEach(
+      (key) => updates[key] === undefined && delete updates[key]
+    );
+
+    const complaint = await Complaint.findById(req.params.id).populate(
+      'createdBy',
+      'email name'
+    );
+
     if (!complaint) {
       const error = new Error('Complaint not found');
       error.statusCode = 404;
@@ -100,13 +132,12 @@ exports.updateComplaint = async (req, res, next) => {
     Object.assign(complaint, updates);
     await complaint.save();
 
+    // Notify user by email
     if (updates.status || updates.priority) {
       sendEmail({
         to: complaint.createdBy.email,
         subject: `Update on your complaint: ${complaint.issueTitle}`,
         text: `Status: ${complaint.status}\nPriority: ${complaint.priority}`,
-      }).catch(() => {
-        // Fail silently; notification is best-effort
       });
     }
 
@@ -115,6 +146,7 @@ exports.updateComplaint = async (req, res, next) => {
     next(error);
   }
 };
+
 
 exports.deleteComplaint = async (req, res, next) => {
   try {

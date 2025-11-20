@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Use proxy in development, or explicit URL if provided
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 
-  (import.meta.env.DEV ? '/api' : 'https://server-5jf0.onrender.com/api');
+  (import.meta.env.DEV ? '/api' : 'http://localhost:5000/api');
 
 export const api = axios.create({
   baseURL: API_BASE_URL,

@@ -14,14 +14,31 @@ const complaintSchema = new mongoose.Schema(
     imageUrl: {
       type: String,
     },
+
+    // GEO LOCATION (OPTIONAL NOW)
     latitude: {
       type: Number,
-      required: [true, 'Latitude is required'],
+      required: false,
     },
     longitude: {
       type: Number,
-      required: [true, 'Longitude is required'],
+      required: false,
     },
+
+    // NEW MANUAL LOCATION FIELDS
+    city: {
+      type: String,
+      trim: true,
+    },
+    area: {
+      type: String,
+      trim: true,
+    },
+    landmark: {
+      type: String,
+      trim: true,
+    },
+
     category: {
       type: String,
       enum: ['road', 'garbage', 'streetlight', 'water', 'other'],
@@ -49,4 +66,3 @@ const complaintSchema = new mongoose.Schema(
 );
 
 module.exports = mongoose.model('Complaint', complaintSchema);
-
