@@ -50,6 +50,7 @@ const ComplaintDetails = () => {
 
   return (
     <section className="space-y-6">
+      {/* HEADER */}
       <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-900 p-6 text-white shadow-lg shadow-slate-300">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
@@ -57,8 +58,11 @@ const ComplaintDetails = () => {
             <h2 className="text-3xl font-semibold">{complaint.issueTitle}</h2>
             <p className="text-sm text-white/70">Category: {complaint.category}</p>
           </div>
+
           <div className="flex gap-3">
-            <span className={`rounded-full px-4 py-2 text-sm capitalize ${statusColor}`}>{complaint.status}</span>
+            <span className={`rounded-full px-4 py-2 text-sm capitalize ${statusColor}`}>
+              {complaint.status}
+            </span>
             <span className={`rounded-full px-4 py-2 text-sm capitalize ${priorityColor}`}>
               {complaint.priority} priority
             </span>
@@ -66,77 +70,93 @@ const ComplaintDetails = () => {
         </div>
       </div>
 
+      {/* DETAILS CARD */}
       <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-lg shadow-slate-100">
         <p className="text-sm text-slate-700">{complaint.description}</p>
 
+        {/* FIXED IMAGE URL */}
         {complaint.imageUrl && (
           <img
             src={complaint.imageUrl}
             alt={complaint.issueTitle}
-            className="mt-6 max-h-96 w-full rounded-2xl object-cover"
+            className="mt-6 max-h-96 w-full rounded-2xl object-cover border"
+            onError={(e) => {
+              e.target.src = "https://via.placeholder.com/500x300?text=Image+Unavailable";
+            }}
           />
         )}
 
         <div className="mt-6 grid gap-6 lg:grid-cols-2">
+          {/* DETAILS BOX */}
           <div className="rounded-2xl border border-slate-100 p-4 text-sm text-slate-600">
             <p>
-              Reported by: <span className="font-semibold text-slate-900">{complaint.createdBy?.name}</span>
+              Reported by:{" "}
+              <span className="font-semibold text-slate-900">
+                {complaint.createdBy?.name}
+              </span>
             </p>
+
             <p className="mt-2">
-              Submitted on:{' '}
-              <span className="font-medium text-slate-900">{new Date(complaint.createdAt).toLocaleString()}</span>
+              Submitted on:{" "}
+              <span className="font-medium text-slate-900">
+                {new Date(complaint.createdAt).toLocaleString()}
+              </span>
             </p>
+
             <p className="mt-2">
-              Last updated:{' '}
-              <span className="font-medium text-slate-900">{new Date(complaint.updatedAt).toLocaleString()}</span>
+              Last Updated:{" "}
+              <span className="font-medium text-slate-900">
+                {new Date(complaint.updatedAt).toLocaleString()}
+              </span>
             </p>
           </div>
+
+          {/* MAP */}
+          <MapView
+            markers={[
+              {
+                lat: complaint.latitude,
+                lng: complaint.longitude,
+                title: complaint.issueTitle,
+              },
+            ]}
+            height="260px"
+          />
+        </div>
+      </div>
+
+      {/* ADMIN PANEL */}
+      {user?.role === 'admin' && (
+        <div className="mt-6 flex flex-wrap gap-4">
           <div>
-            <MapView
-              markers={[
-                {
-                  lat: complaint.latitude,
-                  lng: complaint.longitude,
-                  title: complaint.issueTitle,
-                },
-              ]}
-              height="260px"
-            />
+            <label className="text-sm font-medium text-slate-700">Update status</label>
+            <select
+              defaultValue={complaint.status}
+              onChange={(event) => handleUpdate({ status: event.target.value })}
+              className="mt-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+            >
+              <option value="pending">Pending</option>
+              <option value="in-progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-slate-700">Update priority</label>
+            <select
+              defaultValue={complaint.priority}
+              onChange={(event) => handleUpdate({ priority: event.target.value })}
+              className="mt-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+            >
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
           </div>
         </div>
-
-        {user?.role === 'admin' && (
-          <div className="mt-6 flex flex-wrap gap-4">
-            <div>
-              <label className="text-sm font-medium text-slate-700">Update status</label>
-              <select
-                defaultValue={complaint.status}
-                onChange={(event) => handleUpdate({ status: event.target.value })}
-                className="mt-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm"
-              >
-                <option value="pending">Pending</option>
-                <option value="in-progress">In Progress</option>
-                <option value="resolved">Resolved</option>
-              </select>
-            </div>
-            <div>
-              <label className="text-sm font-medium text-slate-700">Update priority</label>
-              <select
-                defaultValue={complaint.priority}
-                onChange={(event) => handleUpdate({ priority: event.target.value })}
-                className="mt-2 rounded-2xl border border-slate-200 px-4 py-3 text-sm"
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </section>
   );
 };
 
 export default ComplaintDetails;
-

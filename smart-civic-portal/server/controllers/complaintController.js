@@ -10,6 +10,7 @@ const buildFilters = (query) => {
   return filters;
 };
 
+
 exports.createComplaint = async (req, res, next) => {
   try {
     const {
@@ -24,14 +25,18 @@ exports.createComplaint = async (req, res, next) => {
       landmark,
     } = req.body;
 
-    // VALIDATION → Allow either coordinates OR manual location
-    if ((!latitude || !longitude) && !city && !landmark) {
-      const error = new Error(
-        'Please provide either coordinates OR city/landmark for location.'
-      );
-      error.statusCode = 400;
-      throw error;
+    // Validation: Either coords OR manual location
+    if ((!latitude || !longitude) && (!city || !landmark)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Provide either coordinates OR city + landmark',
+      });
     }
+
+    // 🔥 Fix: Store Full URL so frontend can load it
+    const imageUrl = req.file
+      ? `${req.protocol}://${req.get("host")}/uploads/${req.file.filename}`
+      : undefined;
 
     const complaint = await Complaint.create({
       issueTitle,
@@ -43,7 +48,7 @@ exports.createComplaint = async (req, res, next) => {
       landmark,
       category,
       priority,
-      imageUrl: req.file ? `/uploads/${req.file.filename}` : undefined,
+      imageUrl,
       createdBy: req.user._id,
     });
 
