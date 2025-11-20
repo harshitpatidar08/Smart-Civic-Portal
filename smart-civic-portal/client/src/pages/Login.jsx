@@ -19,7 +19,7 @@ const Login = () => {
     setLoading(true);
     try {
       await login(form);
-      navigate('/report');
+      navigate('/home');
     } catch (error) {
       toast.error(error.response?.data?.message || 'Unable to login');
     } finally {
