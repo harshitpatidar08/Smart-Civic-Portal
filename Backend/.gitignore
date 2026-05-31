@@ -1,0 +1,18 @@
+# Environment variables
+.env
+
+# Logs
+*.log
+
+# Error reports
+err.txt
+build_err.txt
+eslint_err.json
+lint.json
+
+# Dependencies
+node_modules/
+
+# Build files
+dist/
+build/
